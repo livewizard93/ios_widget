@@ -5,114 +5,142 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, { useEffect } from 'react';
 import {
   SafeAreaView,
-  ScrollView,
-  StatusBar,
   StyleSheet,
-  Text,
-  useColorScheme,
-  View,
 } from 'react-native';
+import { open } from 'react-native-nitro-sqlite';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+function App() {
+  useEffect(() => {
+    createSQliteDB();
+    fetchData();
+  }, []);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  const createSQliteDB = () => {
+    try {
+      const db = open({
+        name: "celebrations.sqlite",
+      });
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+      db.execute('DROP TABLE celebrations');
+      db.execute(`CREATE TABLE celebrations (
+        id text PRIMARY KEY NOT NULL, 
+        user_id text NOT NULL, 
+        created_at text DEFAULT CURRENT_TIMESTAMP,
+        modified_at text DEFAULT CURRENT_TIMESTAMP,
+        synced_at text,
+        category text NOT NULL DEFAULT 'Birthday',
+        kind_alias text NOT NULL DEFAULT 'None',
+        subkind text,
+        calendar_id text,
+        calendar_event_id text,
+        derived_from_id text,
+        person_id text NOT NULL,
+        date Date,
+        day integer,
+        month integer,
+        year_of_birth integer,
+        first_name text NOT NULL,
+        last_name text,
+        nickname text,
+        relationship text DEFAULT Null,
+        photo_uri text,
+        gender text NOT NULL DEFAULT 'unknown' CHECK("gender" IN ('male', 'female', 'unknown')),
+        action_alias text NOT NULL DEFAULT 'None',
+        action_registered_at text,
+        action_completed_at text,
+        action_metadata text DEFAULT '{}'
+      )`);
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+      db.execute(`INSERT INTO celebrations
+        VALUES (
+          '28bbe674-2134-43c2-8ee7-2bf0077d7a86',
+          '24e2c6d9-1159-4a66-8da2-2eed954181c8',
+          '2024-12-10 21:56:20',
+          '2024-12-10 21:56:20',
+          '',
+          'Birthday',
+          'GenericBirthday',
+          '',
+          '',
+          '',
+          '',
+          '73f2560c-f34d-4bd9-8196-c91a894fa0f4',
+          '',
+          14,
+          11,
+          2018,
+          'Martin',
+          '',
+          '',
+          '',
+          '',
+          'unknown',
+          'None',
+          '',
+          '',
+          ''
+        );
+      `);
+      db.execute(`INSERT INTO celebrations
+        VALUES (
+          '406d3ba6-9540-4805-a75e-c04fa6f11deb',
+          '24e2c6d9-1159-4a66-8da2-2eed954181c8',
+          '2024-12-10 21:57:06',
+          '2024-12-10 21:57:06',
+          '',
+          'Birthday',
+          'FamilyMemberBirthday',
+          'Son',
+          '',
+          '',
+          '',
+          'ff57964d-5b8c-456b-834e-4c4d9cca6deb',
+          '',
+          8,
+          6,
+          '',
+          'Tobias',
+          '',
+          '',
+          'Son',
+          'https://picsum.photos/id/582/600/300',
+          'unknown',
+          'None',
+          '',
+          '',
+          ''
+        );
+      `);
+      console.log('step 5');
+     
+    } catch (e: any) {
+      console.error('Something went wrong executing SQL commands:', e.message);
+    }
+  };
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const fetchData = () => {
+    try {
+      const db = open({
+        name: "celebrations.sqlite",
+      });
+
+      const { rows } = db.execute('SELECT * FROM celebrations');
+      console.log('rows: ', rows);
+    } catch (e: any) {
+      console.error('Something went wrong executing SQL commands:', e.message);
+    }
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+    <SafeAreaView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
 });
 
 export default App;
